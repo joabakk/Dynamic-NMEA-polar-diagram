@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title> - live polar data - </title>
+  <script type='text/javascript' src='//code.jquery.com/jquery-1.9.1.js'></script>
+  <link rel="stylesheet" type="text/css" href="/css/result-light.css">
+  <style type='text/css'>
+  </style>
+
+<body bgcolor="black">
+<script type='text/javascript'>//<![CDATA[ 
+
+//http://blueflame-software.com/blog/highcharts-pie-chart-php-mysql-example/
+//good tutorial json import from mysql
+var night = {
+    chart: {
+        backgroundColor: {
+            linearGradient: [0, 0, 250, 500],
+            stops: [
+                [0, 'rgb(255, 0, 0)'],
+                [1, 'rgb(0, 0, 0)']
+            ]
+        }
+    }
+}
+
+var polarDesign = [[52,4.19],[60,4.47], [75,4.71], [90,4.65], [110,4.52], [120,4.35], [135,3.81],[150,3.29]];
+
+//to be updated once every second?:
+var current = [90,2.1]; 
+//updated only on refresh:
+var portPolar = [[0,0],[45,1], [90,2], [135,3], [180,4]]; 
+var stbPolar = [[0,0],[45,1.1], [90,1.8], [135,2.8], [180,4.3]];
+var polarCombined = [];//[[0,0],[45,1.1], [90,2], [135,3], [180,4.3]];
+
+var tackAngle = 43;
+var reachAngle = 140;
+var windSpeed = 9.8;
+var windRange = 1.0;    
+        
+function get_query(){
+    var url = location.href;
+    var qs = url.substring(url.indexOf('?') + 1).split('&');
+    for(var i = 0, result = {}; i < qs.length; i++){
+        qs[i] = qs[i].split('=');
+        result[qs[i][0]] = decodeURIComponent(qs[i][1]);
+    }
+    return result;
+}
+
+$(function () {
+
+    $('#container').highcharts({
+
+        chart: {
+            polar: true
+        },
+
+        title: {
+            align: 'left',
+            text: '"S/Y Kristina" live polar chart'
+        },
+        subtitle: {
+            align: 'center',
+            text: windSpeed+' +/-'+windRange+' m/s',
+            x: -100
+        },
+
+        pane: {
+            center: ["0%", "50%"],
+            startAngle: 0,
+            endAngle: 180
+        },
+
+        xAxis: {
+            tickInterval: 45,
+            min: 0,
+            max: 180,
+            labels: {
+                formatter: function () {
+                    return this.value + '°';
+                }
+            },
+            plotLines: [{
+                color: 'red', // Color value
+                dashStyle: 'longdashdot', // Style of the plot line. Default to solid
+                value: tackAngle, // Value of where the line will appear
+                width: 2, // Width of the line
+                id: 'tack',
+                label: {
+                    text: 'Target tack '+tackAngle,
+                    verticalAlign: 'center',
+                    textAlign: 'right',
+                    rotation: tackAngle-90,
+                    //y: 12,
+                    x: 120
+                }
+            },  {
+                color: 'red', // Color value
+                dashStyle: 'longdashdot', // Style of the plot line. Default to solid
+                value: reachAngle, // Value of where the line will appear
+                width: 2, // Width of the line
+                id: 'reach', //see http://www.highcharts.com/docs/chart-concepts/plot-bands-and-plot-lines for dynamically updating
+                label: {
+                    text: 'Target reach '+reachAngle,
+                    verticalAlign: 'right',
+                    textAlign: 'top',
+                    rotation: reachAngle-90,
+                    //y: 12,
+                    x: 20
+                }
+            }]
+        },
+
+        yAxis: {
+            min: 0
+        },
+
+        plotOptions: {
+            series: {
+                pointStart: 0,
+                pointInterval: 45
+
+            },
+            column: {
+                pointPadding: 0,
+                groupPadding: 0
+            },
+            spline: { /* or line, area, series, areaspline etc.*/
+                marker: {
+                   enabled: false
+                },
+                connectNulls: false 
+            },
+            scatter: {
+                marker: {
+                    //fillColor: 'transparent',
+                    lineWidth: 2,
+                    symbol: 'circle',
+                    lineColor: null
+                }
+            }
+        },
+
+        series: [{
+            type: 'spline',
+            name: 'Port',
+            color: 'red',
+            data: portPolar,
+	    visible: false,
+            connectEnds: false
+        }, {
+            type: 'spline',
+            name: 'Starboard',
+            color: 'green',
+            data: stbPolar,
+	    visible: false,
+            connectEnds: false
+        },{
+            type: 'spline',
+            name: 'Combined',
+            //color: 'blue',
+            data: polarCombined,
+            connectEnds: false
+        },{
+            type: 'spline',
+            name: 'Design',
+            //color: 'black',
+            data: polarDesign,
+	    visible: false,
+            connectEnds: false
+        }, {
+            type: 'scatter',
+            name: 'current',
+            color: 'orange',
+            data: [current]
+        }]
+    });
+    
+    $('#toggle').click(function () {
+        var chart = $('#container').highcharts(),
+            options = chart.options;
+        
+        options.chart.polar = !options.chart.polar;
+        
+        $('#container').highcharts(options);
+    });
+    $('#night').click(function () {
+	var $_GET = get_query();
+	location.assign("polar.htm?night=true")
+    });
+    $('#day').click(function () {
+	location.assign("polar.htm?night=false")
+    });
+
+    $('#update').click(function () {
+        var chart = $('#container').highcharts(),
+            options = chart.options;
+            $.getJSON("getData.php",{windspeed:windSpeed,windrange:windRange}, function (json) {
+                options.series[2].data = json;
+//		polarCombined = json;
+                options = chart.options;
+            });
+    
+        $('#container').highcharts(options);
+    });
+    
+});
+//]]>  
+
+</script>
+
+
+</head>
+<body>
+<!--
+GetQuery and load theme if night
+
+
+FRA http://stackoverflow.com/questions/4623555/load-different-jquery-script-if-browser-is-internet-explorer:
+-->
+<script type="text/javascript" src="js/themes/dark-unica.js">
+   var $_GET = get_query();
+   var obj = $.parseJSON($_GET);
+   alert(obj.night); //true or false
+   if (obj.night) {
+      $.getScript('js/themes/dark-unica.js', function() {});
+     }
+</script>
+
+<script src="http://code.highcharts.com/highcharts.js"></script>
+<script src="http://code.highcharts.com/highcharts-more.js"></script>
+<script src="http://code.highcharts.com/modules/exporting.js"></script>
+<div id="container" style="min-width: 310px; max-width: 800px; height: 600px; margin: 0 auto"></div>
+<button id="toggle">Polar/Line chart toggle</button>
+<button id="update">Update from DB</button>
+<button id="night">Night Mode</button>
+<button id="day">Day Mode</button>  
+</body>
+
+
+</html>
