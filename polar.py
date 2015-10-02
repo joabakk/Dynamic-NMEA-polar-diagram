@@ -269,8 +269,8 @@ def read_serial(filename):  #main function
 	    pass#raise
 	    #continue
 
-#filename="/dev/pty23"
-filename="/home/pi/kplexlogs/nmeaf.log"
+filename="/dev/pty23"
+#filename="/home/pi/kplexlogs/nmeaf.log"
 while 1:
     try:
         read_serial(filename)
