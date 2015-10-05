@@ -9,5 +9,5 @@ This requires
  - Apache installed, and the contents of 'web' in your var/www or similar
  - Link python libraries to 'libraries' folder
 
-This is very much work in progress. but I am grateful for any help in firming up and making the code more effective.
+This is very much work in progress. Although it is working for me, I am grateful for any help in firming up and making the code more effective.
 
