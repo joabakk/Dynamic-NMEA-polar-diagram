@@ -53,8 +53,8 @@ def read_serial(filename):  #main function
 
         if com is None:
           try:
-            #com = serial.Serial(filename, timeout=5.0) #if pty
-	        com = open(filename) #if logfile
+            com = serial.Serial(filename, timeout=5.0) #if pty
+	    #com = open(filename) #if logfile
           except serial.SerialException:
             print('could not connect to %s, restarting' % filename)
             command = ['service', 'kplex', 'restart'];
