@@ -11,3 +11,4 @@ This requires
 
 This is very much work in progress. Although it is working for me, I am grateful for any help in firming up and making the code more effective.
 
+<img src=https://cloud.githubusercontent.com/assets/2553029/10094739/d53bda3e-6363-11e5-84fd-321acd3a8cd1.jpeg>
